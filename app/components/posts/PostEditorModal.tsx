@@ -26,6 +26,9 @@ export default function PostEditorModal({ post, openFilePicker = false, onClose,
   const [error, setError] = useState("")
   const fileInput = useRef<HTMLInputElement>(null)
   const pickerOpened = useRef(false)
+  // გაზიარებას ფოტო არ აქვს და ტექსტი არასავალდებულოა
+  const isShare = post?.type === "share"
+  const canSubmit = isShare || !!desc.trim() || !!preview
 
   function pickFile(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0]
@@ -48,7 +51,7 @@ export default function PostEditorModal({ post, openFilePicker = false, onClose,
   }
 
   async function submit() {
-    if (!desc.trim() && !preview) return
+    if (!canSubmit) return
     setSaving(true)
     setError("")
 
@@ -98,7 +101,7 @@ export default function PostEditorModal({ post, openFilePicker = false, onClose,
           </div>
         )}
 
-        <div className="flex items-center justify-between border border-gray-300 rounded-lg px-4 py-2 mb-3">
+        <div className={`flex items-center justify-between border border-gray-300 rounded-lg px-4 py-2 mb-3 ${isShare ? "hidden" : ""}`}>
           <span className="font-semibold text-[15px] text-gray-900">დაამატეთ პოსტს</span>
           <button
             onClick={() => fileInput.current?.click()}
@@ -127,7 +130,7 @@ export default function PostEditorModal({ post, openFilePicker = false, onClose,
 
         <button
           onClick={submit}
-          disabled={saving || (!desc.trim() && !preview)}
+          disabled={saving || !canSubmit}
           className="w-full h-9 rounded-md bg-[#1877f2] hover:bg-[#166fe5] text-white font-semibold text-[15px] disabled:bg-[#e4e6eb] disabled:text-[#bcc0c4] cursor-pointer disabled:cursor-not-allowed"
         >
           {saving ? "ინახება..." : post ? "შენახვა" : "გამოქვეყნება"}

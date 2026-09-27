@@ -4,6 +4,7 @@ import { usePaginated } from "@/app/hooks/usePaginated"
 import LoadMoreTrigger from "@/app/components/ui/LoadMoreTrigger"
 import CreatePost from "./CreatePost"
 import PostCard from "./PostCard"
+import type { ShareResult } from "./ShareModal"
 
 interface Props {
   url: string
@@ -23,12 +24,20 @@ export default function PostList({ url, showComposer = false, emptyText = "პ�
     setPosts((prev) => prev.filter((p) => p._id !== postId))
   }
 
+  function shared({ post, originalId, sharesCount }: ShareResult) {
+    setPosts((prev) => {
+      const updated = prev.map((p) => (p._id === originalId ? { ...p, sharesCount } : p))
+      // ახალი გაზიარება მხოლოდ იქ ჩნდება, სადაც ჩემი პოსტები ჩანს (feed / ჩემი პროფილი)
+      return showComposer ? [post, ...updated] : updated
+    })
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {showComposer && <CreatePost onCreated={(post) => setPosts((prev) => [post, ...prev])} />}
 
       {posts.map((post) => (
-        <PostCard key={post._id} post={post} onUpdated={updated} onDeleted={deleted} />
+        <PostCard key={post._id} post={post} onUpdated={updated} onDeleted={deleted} onShared={shared} />
       ))}
 
       {!loading && !hasMore && posts.length === 0 && (

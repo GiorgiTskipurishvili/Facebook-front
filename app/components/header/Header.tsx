@@ -3,7 +3,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { HomeIcon } from "@/app/icons/HomeIcon"
 import { MessengerIcon } from "@/app/icons/MessengerIcon"
-import { FriendsIcon } from "@/app/icons/UiIcons"
+import { FriendsIcon, PhotoIcon } from "@/app/icons/UiIcons"
 import SearchBox from "./SearchBox"
 import MessengerDropdown from "./MessengerDropdown"
 import NotificationsDropdown from "./NotificationsDropdown"
@@ -12,6 +12,7 @@ import ProfileMenu from "./ProfileMenu"
 const NAV_ITEMS = [
   { href: "/", label: "მთავარი", Icon: HomeIcon },
   { href: "/friends", label: "მეგობრები", Icon: FriendsIcon },
+  { href: "/photos", label: "ფოტოები", Icon: PhotoIcon },
   { href: "/messages", label: "Messenger", Icon: MessengerIcon }
 ]
 

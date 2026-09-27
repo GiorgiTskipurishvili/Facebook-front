@@ -4,7 +4,7 @@ import { useCurrentUser } from "@/app/context/AuthContext"
 import { useSocket } from "@/app/context/SocketContext"
 import Avatar from "@/app/components/ui/Avatar"
 import { fullName } from "@/app/lib/utils"
-import { FriendsIcon, SettingsIcon } from "@/app/icons/UiIcons"
+import { FriendsIcon, PhotoIcon, SettingsIcon } from "@/app/icons/UiIcons"
 import { MessengerIcon } from "@/app/icons/MessengerIcon"
 import { NotificationIcon } from "@/app/icons/NotificationIcon"
 
@@ -14,6 +14,7 @@ export default function LeftSidebar() {
 
   const items = [
     { href: "/friends", label: "მეგობრები", icon: <FriendsIcon className="w-6 h-6 text-[#1877f2]" /> },
+    { href: "/photos", label: "ფოტოები და ხალხი", icon: <PhotoIcon className="w-6 h-6 text-[#45bd62]" /> },
     { href: "/messages", label: "Messenger", icon: <MessengerIcon className="w-6 h-6 text-[#a033ff]" />, badge: unreadMessages },
     { href: "/notifications", label: "შეტყობინებები", icon: <NotificationIcon className="w-6 h-6 text-[#e41e3f]" />, badge: unreadNotifications },
     { href: "/settings", label: "პარამეტრები", icon: <SettingsIcon className="w-6 h-6 text-gray-700" /> }

@@ -14,9 +14,10 @@ import UserListModal from "@/app/components/ui/UserListModal"
 import PostList from "@/app/components/posts/PostList"
 import FriendshipActions from "@/app/components/profile/FriendshipActions"
 import FriendsGrid from "@/app/components/profile/FriendsGrid"
+import PhotoGrid from "@/app/components/photos/PhotoGrid"
 import { CameraIcon } from "@/app/icons/UiIcons"
 
-type Tab = "posts" | "about" | "friends"
+type Tab = "posts" | "photos" | "about" | "friends"
 
 export default function ProfilePage() {
   const { id } = useParams<{ id: string }>()
@@ -28,6 +29,8 @@ export default function ProfilePage() {
   const [tab, setTab] = useState<Tab>("posts")
   const [listModal, setListModal] = useState<null | "followers" | "following">(null)
   const [uploading, setUploading] = useState<null | "avatar" | "cover">(null)
+  // ახალი ავატარი/ქავერი პოსტსაც ქმნის -> სიების თავიდან ჩატვირთვა
+  const [contentVersion, setContentVersion] = useState(0)
   const avatarInput = useRef<HTMLInputElement>(null)
   const coverInput = useRef<HTMLInputElement>(null)
 
@@ -58,6 +61,7 @@ export default function ProfilePage() {
       const res = await api.put(`/users/me/${kind}`, form)
       setProfile(res.data.data)
       setMe(res.data.data)
+      setContentVersion((v) => v + 1)
     } catch (err) {
       alert(getErrorMessage(err))
     } finally {
@@ -79,6 +83,7 @@ export default function ProfilePage() {
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "posts", label: "პოსტები" },
+    { key: "photos", label: "ფოტოები" },
     { key: "about", label: "შესახებ" },
     { key: "friends", label: "მეგობრები" }
   ]
@@ -172,8 +177,19 @@ export default function ProfilePage() {
               <FriendsGrid userId={profile._id} limit={9} onSeeAll={() => setTab("friends")} />
             </div>
             <div className="w-full md:flex-1 min-w-0">
-              <PostList key={profile._id} url={`/posts/user/${profile._id}`} showComposer={isMe} />
+              <PostList key={`${profile._id}-${contentVersion}`} url={`/posts/user/${profile._id}`} showComposer={isMe} />
             </div>
+          </div>
+        )}
+
+        {tab === "photos" && (
+          <div className="bg-white rounded-lg shadow-[0_1px_2px_rgba(0,0,0,.2)] p-4">
+            <h2 className="text-xl font-bold text-gray-900 mb-3">ფოტოები</h2>
+            <PhotoGrid
+              key={`${profile._id}-${contentVersion}`}
+              url={`/posts/photos/user/${profile._id}`}
+              emptyText={isMe ? "ფოტოები ჯერ არ აგიტვირთავთ" : "ფოტოები ჯერ არ არის"}
+            />
           </div>
         )}
 

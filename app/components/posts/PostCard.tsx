@@ -3,49 +3,47 @@
 import { useState } from "react"
 import Link from "next/link"
 import api, { fileUrl, getErrorMessage } from "@/app/lib/api"
-import type { Post } from "@/app/lib/types"
+import type { Post, PostType } from "@/app/lib/types"
 import { fullName, timeAgo } from "@/app/lib/utils"
 import { useCurrentUser } from "@/app/context/AuthContext"
 import Avatar from "@/app/components/ui/Avatar"
 import UserListModal from "@/app/components/ui/UserListModal"
-import { CommentIcon, DotsIcon, LikeFilledIcon, LikeIcon } from "@/app/icons/UiIcons"
+import { CommentIcon, DotsIcon, LikeFilledIcon, LikeIcon, ShareIcon } from "@/app/icons/UiIcons"
 import { useClickOutside } from "@/app/hooks/useClickOutside"
+import { usePostLike } from "@/app/hooks/usePostLike"
 import CommentsSection from "./CommentsSection"
 import PostEditorModal from "./PostEditorModal"
+import ShareModal, { type ShareResult } from "./ShareModal"
+import SharedPostEmbed from "./SharedPostEmbed"
+
+const TYPE_LABELS: Partial<Record<PostType, string>> = {
+  profile_picture: "განაახლა პროფილის სურათი",
+  cover_photo: "განაახლა ქავერ ფოტო",
+  share: "გააზიარა პოსტი"
+}
 
 interface Props {
   post: Post
   onUpdated: (post: Post) => void
   onDeleted: (postId: string) => void
+  // გაზიარების შემდეგ (სიაში ახალი პოსტის დასამატებლად)
+  onShared?: (result: ShareResult) => void
   defaultShowComments?: boolean
 }
 
-export default function PostCard({ post, onUpdated, onDeleted, defaultShowComments = false }: Props) {
+export default function PostCard({ post, onUpdated, onDeleted, onShared, defaultShowComments = false }: Props) {
   const me = useCurrentUser()
   const [showComments, setShowComments] = useState(defaultShowComments)
   const [menuOpen, setMenuOpen] = useState(false)
   const [editing, setEditing] = useState(false)
-  const [showLikes, setShowLikes] = useState(false)
-  const [liking, setLiking] = useState(false)
+  const [sharing, setSharing] = useState(false)
+  const [userList, setUserList] = useState<null | "likes" | "shares">(null)
   const menuRef = useClickOutside<HTMLDivElement>(() => setMenuOpen(false))
+  const toggleLike = usePostLike(post, onUpdated)
 
   const isOwner = post.user?._id === me._id
-
-  async function toggleLike() {
-    if (liking) return
-    setLiking(true)
-    // optimistic update - ღილაკი მაშინვე რეაგირებს
-    const liked = !post.likedByMe
-    onUpdated({ ...post, likedByMe: liked, likesCount: post.likesCount + (liked ? 1 : -1) })
-    try {
-      const res = await api.put(`/posts/${post._id}/like`)
-      onUpdated({ ...post, likedByMe: res.data.liked, likesCount: res.data.likesCount })
-    } catch {
-      onUpdated(post)
-    } finally {
-      setLiking(false)
-    }
-  }
+  const isShare = post.type === "share"
+  const typeLabel = post.type ? TYPE_LABELS[post.type] : undefined
 
   async function remove() {
     setMenuOpen(false)
@@ -58,14 +56,25 @@ export default function PostCard({ post, onUpdated, onDeleted, defaultShowCommen
     }
   }
 
+  function shared(result: ShareResult) {
+    // თუ ეს ბარათი თავად ორიგინალია - მრიცხველი მაშინვე განახლდეს
+    if (result.originalId === post._id) onUpdated({ ...post, sharesCount: result.sharesCount })
+    onShared?.(result)
+  }
+
+  const hasStats = post.likesCount > 0 || post.commentsCount > 0 || post.sharesCount > 0
+
   return (
     <article className="bg-white rounded-lg shadow-[0_1px_2px_rgba(0,0,0,.2)]">
       <div className="flex items-center gap-2 px-4 pt-3 pb-2">
         <Avatar user={post.user} size={40} link />
         <div className="flex-1 min-w-0">
-          <Link href={`/profile/${post.user?._id}`} className="font-semibold text-[15px] text-gray-900 hover:underline">
-            {fullName(post.user)}
-          </Link>
+          <p className="text-[15px] text-gray-900 leading-5">
+            <Link href={`/profile/${post.user?._id}`} className="font-semibold hover:underline">
+              {fullName(post.user)}
+            </Link>
+            {typeLabel && <span className="text-gray-600"> {typeLabel}</span>}
+          </p>
           <Link href={`/post/${post._id}`} className="block text-[13px] text-gray-500 hover:underline">
             {timeAgo(post.createdAt)}
           </Link>
@@ -98,10 +107,12 @@ export default function PostCard({ post, onUpdated, onDeleted, defaultShowCommen
       </div>
 
       {post.desc && (
-        <p className={`px-4 pb-3 text-gray-900 whitespace-pre-wrap break-words ${!post.image && post.desc.length < 80 ? "text-2xl" : "text-[15px]"}`}>
+        <p className={`px-4 pb-3 text-gray-900 whitespace-pre-wrap break-words ${!post.image && !isShare && post.desc.length < 80 ? "text-2xl" : "text-[15px]"}`}>
           {post.desc}
         </p>
       )}
+
+      {isShare && <SharedPostEmbed post={post.sharedPost ?? null} />}
 
       {post.image && (
         <Link href={`/post/${post._id}`} className="block bg-black/5">
@@ -109,21 +120,28 @@ export default function PostCard({ post, onUpdated, onDeleted, defaultShowCommen
         </Link>
       )}
 
-      {(post.likesCount > 0 || post.commentsCount > 0) && (
+      {hasStats && (
         <div className="flex items-center justify-between px-4 py-2.5 text-[15px] text-gray-500">
           {post.likesCount > 0 ? (
-            <button onClick={() => setShowLikes(true)} className="flex items-center gap-1.5 hover:underline cursor-pointer">
+            <button onClick={() => setUserList("likes")} className="flex items-center gap-1.5 hover:underline cursor-pointer">
               <span className="w-[18px] h-[18px] rounded-full bg-[#1877f2] flex items-center justify-center">
                 <LikeFilledIcon className="w-3 h-3 text-white" />
               </span>
               {post.likesCount}
             </button>
           ) : <span />}
-          {post.commentsCount > 0 && (
-            <button onClick={() => setShowComments(true)} className="hover:underline cursor-pointer">
-              {post.commentsCount} კომენტარი
-            </button>
-          )}
+          <span className="flex gap-3">
+            {post.commentsCount > 0 && (
+              <button onClick={() => setShowComments(true)} className="hover:underline cursor-pointer">
+                {post.commentsCount} კომენტარი
+              </button>
+            )}
+            {post.sharesCount > 0 && (
+              <button onClick={() => setUserList("shares")} className="hover:underline cursor-pointer">
+                {post.sharesCount} გაზიარება
+              </button>
+            )}
+          </span>
         </div>
       )}
 
@@ -142,6 +160,14 @@ export default function PostCard({ post, onUpdated, onDeleted, defaultShowCommen
           <CommentIcon className="w-5 h-5" />
           კომენტარი
         </button>
+        <button
+          onClick={() => setSharing(true)}
+          disabled={isShare && !post.sharedPost}
+          className="flex-1 h-9 flex items-center justify-center gap-2 rounded-md hover:bg-gray-100 text-[15px] font-semibold text-gray-600 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <ShareIcon className="w-5 h-5" />
+          გაზიარება
+        </button>
       </div>
 
       {showComments && (
@@ -155,7 +181,14 @@ export default function PostCard({ post, onUpdated, onDeleted, defaultShowCommen
       )}
 
       {editing && <PostEditorModal post={post} onClose={() => setEditing(false)} onSaved={onUpdated} />}
-      {showLikes && <UserListModal title="მოწონებები" url={`/posts/${post._id}/likes`} onClose={() => setShowLikes(false)} />}
+      {sharing && <ShareModal post={post} onClose={() => setSharing(false)} onShared={shared} />}
+      {userList && (
+        <UserListModal
+          title={userList === "likes" ? "მოწონებები" : "გააზიარეს"}
+          url={`/posts/${post._id}/${userList}`}
+          onClose={() => setUserList(null)}
+        />
+      )}
     </article>
   )
 }

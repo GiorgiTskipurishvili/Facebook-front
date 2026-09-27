@@ -11,7 +11,8 @@ const TEXTS: Record<NotificationType, string> = {
   comment_like: "მოიწონა თქვენი კომენტარი",
   friend_request: "გამოგიგზავნათ მეგობრობის მოთხოვნა",
   friend_accept: "დაეთანხმა თქვენს მეგობრობის მოთხოვნას",
-  follow: "გამოგიწერათ"
+  follow: "გამოგიწერათ",
+  post_share: "გააზიარა თქვენი პოსტი"
 }
 
 const BADGES: Record<NotificationType, { bg: string; icon: string }> = {
@@ -21,7 +22,8 @@ const BADGES: Record<NotificationType, { bg: string; icon: string }> = {
   comment_reply: { bg: "bg-[#42b72a]", icon: "💬" },
   friend_request: { bg: "bg-[#1877f2]", icon: "👤" },
   friend_accept: { bg: "bg-[#1877f2]", icon: "🤝" },
-  follow: { bg: "bg-[#1877f2]", icon: "➕" }
+  follow: { bg: "bg-[#1877f2]", icon: "➕" },
+  post_share: { bg: "bg-[#f7b928]", icon: "↗️" }
 }
 
 export function notificationLink(notification: AppNotification) {

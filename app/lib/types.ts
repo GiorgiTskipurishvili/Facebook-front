@@ -30,6 +30,18 @@ export interface Relation {
   followingCount: number
 }
 
+export type PostType = "post" | "profile_picture" | "cover_photo" | "share"
+
+// გაზიარებული (ორიგინალი) პოსტი - სტატისტიკის გარეშე
+export interface SharedPost {
+  _id: string
+  desc: string
+  image: string
+  user: UserPreview | null
+  type?: PostType
+  createdAt: string
+}
+
 export interface Post {
   _id: string
   desc: string
@@ -39,6 +51,10 @@ export interface Post {
   likesCount: number
   likedByMe: boolean
   commentsCount: number
+  sharesCount: number
+  type?: PostType
+  // null - ორიგინალი წაიშალა; undefined - ჩვეულებრივი პოსტი
+  sharedPost?: SharedPost | null
   createdAt: string
   updatedAt: string
 }
@@ -106,6 +122,7 @@ export type NotificationType =
   | "friend_request"
   | "friend_accept"
   | "follow"
+  | "post_share"
 
 export interface AppNotification {
   _id: string
