@@ -1,7 +1,7 @@
 import axios from "axios"
 import { deleteCookie, getCookie } from "cookies-next/client"
 
-const PRODUCTION_API_URL = "https://facebook-1-3jla.onrender.com"
+const PRODUCTION_API_URL = "https://facebook-1-ua5v.onrender.com"
 const DEVELOPMENT_API_URL = "http://localhost:3030"
 
 // NEXT_PUBLIC_API_URL-ს აქვს უპირატესობა; თუ არ არის: build (Vercel) -> Render, npm run dev -> localhost
