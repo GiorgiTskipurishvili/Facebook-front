@@ -1,7 +1,15 @@
 import axios from "axios"
 import { deleteCookie, getCookie } from "cookies-next/client"
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3030"
+const PRODUCTION_API_URL = "https://facebook-1-3jla.onrender.com"
+const DEVELOPMENT_API_URL = "http://localhost:3030"
+
+// NEXT_PUBLIC_API_URL-ს აქვს უპირატესობა; თუ არ არის: build (Vercel) -> Render, npm run dev -> localhost
+// ბოლო "/" იშლება, რომ "/uploads/..." და "/auth/..." არ გახდეს "//uploads/..."
+export const API_URL = (
+  process.env.NEXT_PUBLIC_API_URL ||
+  (process.env.NODE_ENV === "production" ? PRODUCTION_API_URL : DEVELOPMENT_API_URL)
+).replace(/\/+$/, "")
 export const TOKEN_COOKIE = "accessToken"
 
 const api = axios.create({ baseURL: API_URL })

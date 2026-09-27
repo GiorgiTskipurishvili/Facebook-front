@@ -15,6 +15,7 @@ npm run dev
 
 | ცვლადი | აღწერა | Default |
 |---|---|---|
-| `NEXT_PUBLIC_API_URL` | backend server-ის მისამართი | `http://localhost:3030` |
+| `NEXT_PUBLIC_API_URL` | backend server-ის მისამართი | `npm run dev` → `http://localhost:3030`, build → `https://facebook-1-3jla.onrender.com` |
 
-Vercel-ზე `NEXT_PUBLIC_API_URL` Project Settings → Environment Variables-ში უნდა დაემატოს (შეცვლის შემდეგ საჭიროა Redeploy).
+ცვლადი არასავალდებულოა - თუ არ არის მითითებული, გამოიყენება default მისამართი (იხ. `app/lib/api.ts`).
+სხვა server-ზე გადასართავად Vercel-ში დაამატეთ `NEXT_PUBLIC_API_URL` (შეცვლის შემდეგ საჭიროა Redeploy).
