@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+body {
+  background: #f0f2f5;
+  color: #050505;
+  font-family: var(--font-geist-sans), "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+@keyframes story-progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+/* გვერდითი პანელების თხელი scrollbar */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.thin-scroll:hover {
+  scrollbar-color: #bcc0c4 transparent;
+}
